@@ -35,15 +35,13 @@ jobs:
           mkdir -p dist
           suffix=''
           if [[ "$TARGET_OS" == windows ]]; then suffix='.exe'; fi
-          for tool in xup xdown; do
-            CGO_ENABLED=0 GOOS="$TARGET_OS" GOARCH="$TARGET_ARCH" \
-              go build -trimpath -ldflags='-s -w' -o "dist/${tool}${suffix}" "./cmd/${tool}"
-          done
+          CGO_ENABLED=0 GOOS="$TARGET_OS" GOARCH="$TARGET_ARCH" \
+            go build -trimpath -ldflags='-s -w' -o "dist/xup${suffix}" ./cmd/xup
           name="xup-${TARGET_OS}-${TARGET_ARCH}"
           if [[ "$TARGET_OS" == windows ]]; then
-            (cd dist && zip -q "../${name}.zip" xup.exe xdown.exe)
+            (cd dist && zip -q "../${name}.zip" xup.exe)
           else
-            tar -czf "${name}.tar.gz" -C dist xup xdown
+            tar -czf "${name}.tar.gz" -C dist xup
           fi
       - uses: actions/upload-artifact@v4
         with:

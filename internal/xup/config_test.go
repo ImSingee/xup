@@ -59,8 +59,12 @@ func TestSetupOutputDoesNotExposeSecret(t *testing.T) {
 	for k, v := range map[string]string{"XUP_ENDPOINT": "https://s3.example.com", "XUP_BUCKET": "test", "XUP_ACCESS_KEY_ID": "id", "XUP_SECRET_ACCESS_KEY": "super-secret"} {
 		t.Setenv(k, v)
 	}
+	exe := filepath.Join(t.TempDir(), "xup")
+	if err := os.WriteFile(exe, []byte("binary"), 0700); err != nil {
+		t.Fatal(err)
+	}
 	var out strings.Builder
-	if code := Run("xup", []string{"setup", "--headless"}, strings.NewReader(""), &out, &out); code != 0 {
+	if code := run("xup", []string{"setup", "--headless"}, strings.NewReader(""), &out, &out, func() (string, error) { return exe, nil }); code != 0 {
 		t.Fatal(out.String())
 	}
 	if strings.Contains(out.String(), "super-secret") {

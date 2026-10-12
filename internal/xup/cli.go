@@ -11,7 +11,7 @@ import (
 )
 
 const usage = `Usage:
-  xup setup [--headless]      Configure S3 endpoint and credentials
+  xup setup [--headless]      Configure S3 and create an xdown alias beside xup
   xup FILE [KEY]             Upload a local file (default key: filename)
   xup rm KEY                 Delete a remote object
   xup ls [PREFIX]            List remote objects
@@ -23,6 +23,14 @@ XUP_CONFIG overrides the config file path. Use HTTPS unless the endpoint is trus
 `
 
 func Run(program string, args []string, in io.Reader, out, errout io.Writer) int {
+	return run(program, args, in, out, errout, os.Executable)
+}
+
+func run(program string, args []string, in io.Reader, out, errout io.Writer, executable func() (string, error)) int {
+	if program != "xup" && program != "xdown" {
+		fmt.Fprintf(errout, "unsupported command name %q: run as xup or xdown\n", program)
+		return 2
+	}
 	if len(args) == 0 {
 		fmt.Fprint(errout, usage)
 		return 2
@@ -65,6 +73,17 @@ func Run(program string, args []string, in io.Reader, out, errout io.Writer) int
 		}
 		p, _ := ConfigPath()
 		fmt.Fprintln(out, "Configuration saved to", p)
+		exe, e := executable()
+		if e != nil {
+			fmt.Fprintln(errout, "setup: configuration saved, but cannot locate executable for xdown alias:", e)
+			return 1
+		}
+		alias, e := EnsureAlias(exe)
+		if e != nil {
+			fmt.Fprintln(errout, "setup: configuration saved, but cannot create xdown alias:", e)
+			return 1
+		}
+		fmt.Fprintln(out, "xdown alias ready at", alias)
 		return 0
 	}
 	c, err := Load()

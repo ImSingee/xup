@@ -4,16 +4,15 @@ Minimal Go CLI for an S3-compatible bucket: upload via `xup`, download via `xdow
 
 ## Install
 
-Download the build for your OS and CPU under **Actions → Build binaries → latest successful push → Artifacts**. Extract `xup` and `xdown` (or the `.exe` files) and put them on your `PATH`. Build locally with Go 1.23+:
+Download the build for your OS and CPU under **Actions → Build binaries → latest successful push → Artifacts**. Extract the single `xup` executable (or `xup.exe`) into a **writable directory on your `PATH`**. Run `xup setup` to configure S3 and automatically create `xdown` beside it. Build locally with Go 1.23+:
 
 ```sh
 go build -o xup ./cmd/xup
-go build -o xdown ./cmd/xdown
 ```
 
 ## Configure
 
-Run `xup setup` for interactive terminal setup. Enter endpoint (`https://s3.example.com`), bucket, region (or `-` to omit), access key ID and secret access key. The secret is not echoed on a terminal. Path-style defaults to yes (typical for S3-compatible providers). The bucket must already exist.
+Run `xup setup` for interactive terminal setup. Setup creates a symlink named `xdown` next to the installed `xup` (on Windows it falls back to a hard link if symlinks are unavailable). This is **one binary**, which selects upload or download mode based on the invoked name (`os.Args[0]`). Rerunning setup accepts an alias to the same binary and never overwrites a different existing file. If the directory is read-only, configuration is saved but setup returns an error until you install the executable somewhere writable. Enter endpoint (`https://s3.example.com`), bucket, region (or `-` to omit), access key ID and secret access key. The secret is not echoed on a terminal. Path-style defaults to yes (typical for S3-compatible providers). The bucket must already exist.
 
 In a headless environment, supply environment variables through your shell/secret manager (not command arguments):
 
@@ -41,4 +40,4 @@ xup rm backups/a.bin               # delete exact key
 xup --help
 ```
 
-Upload will overwrite a remote object with the same key. Download refuses to overwrite a local file, and removes a partially downloaded file if the transfer fails. The optional `skills/xup/SKILL.md` teaches compatible AI agents to use these commands safely.
+Upload will overwrite a remote object with the same key. Download refuses to overwrite a local file, and removes a partially downloaded file if the transfer fails. The optional `skills/xup/SKILL.md` teaches compatible AI agents to use these commands and the alias setup safely.

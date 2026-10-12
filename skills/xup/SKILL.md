@@ -9,11 +9,11 @@ Use this skill when the user wants to manage files in their already configured S
 
 ## Setup
 
-Ensure the binaries `xup` and `xdown` are installed and on PATH. If `xup` is not configured, ask the user to run `xup setup` locally or offer headless setup with environment variables. NEVER request that the user paste access keys into chat. Do not print config files, environment variables, or credentials.
+Install the **single `xup` binary** (or `xup.exe`) in a writable directory on PATH. The program determines upload (`xup`) versus download (`xdown`) mode from `os.Args[0]`. `xup setup` automatically creates an `xdown` symlink beside `xup` (on Windows it falls back to a hard link when symlinks are unavailable). Do not look for or build a separate xdown binary. If an alias already exists for a different file, setup refuses to overwrite it; if the installation directory is read-only, move xup to a writable directory or arrange the alias manually. If `xup` is not configured, ask the user to run `xup setup` locally or offer headless setup with environment variables. NEVER request that the user paste access keys into chat. Do not print config files, environment variables, or credentials.
 
-Interactive: `xup setup` (password input is hidden on a terminal).
+Interactive: `xup setup` (password input is hidden on a terminal; config is saved and xdown alias created).
 
-Headless: set `XUP_ENDPOINT`, `XUP_BUCKET`, `XUP_ACCESS_KEY_ID`, `XUP_SECRET_ACCESS_KEY`; optionally `XUP_REGION`, `XUP_SESSION_TOKEN`, `XUP_PATH_STYLE` (`true` by default), then run `xup setup --headless`. The optional `XUP_CONFIG` sets the configuration file path.
+Headless: set `XUP_ENDPOINT`, `XUP_BUCKET`, `XUP_ACCESS_KEY_ID`, `XUP_SECRET_ACCESS_KEY`; optionally `XUP_REGION`, `XUP_SESSION_TOKEN`, `XUP_PATH_STYLE` (`true` by default), then run `xup setup --headless` (also creates the alias). The optional `XUP_CONFIG` sets the configuration file path.
 
 ## Commands
 
