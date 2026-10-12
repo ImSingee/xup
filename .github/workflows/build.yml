@@ -1,0 +1,52 @@
+name: Build binaries
+on:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    name: ${{ matrix.os }}-${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: linux, arch: amd64 }
+          - { os: linux, arch: arm64 }
+          - { os: darwin, arch: amd64 }
+          - { os: darwin, arch: arm64 }
+          - { os: windows, arch: amd64 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Test
+        run: go test ./...
+      - name: Build and package
+        shell: bash
+        env:
+          TARGET_OS: ${{ matrix.os }}
+          TARGET_ARCH: ${{ matrix.arch }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          suffix=''
+          if [[ "$TARGET_OS" == windows ]]; then suffix='.exe'; fi
+          for tool in xup xdown; do
+            CGO_ENABLED=0 GOOS="$TARGET_OS" GOARCH="$TARGET_ARCH" \
+              go build -trimpath -ldflags='-s -w' -o "dist/${tool}${suffix}" "./cmd/${tool}"
+          done
+          name="xup-${TARGET_OS}-${TARGET_ARCH}"
+          if [[ "$TARGET_OS" == windows ]]; then
+            (cd dist && zip -q "../${name}.zip" xup.exe xdown.exe)
+          else
+            tar -czf "${name}.tar.gz" -C dist xup xdown
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xup-${{ matrix.os }}-${{ matrix.arch }}
+          path: xup-${{ matrix.os }}-${{ matrix.arch }}.*
+          if-no-files-found: error
